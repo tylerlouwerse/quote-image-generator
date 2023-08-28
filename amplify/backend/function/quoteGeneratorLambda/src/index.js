@@ -28,16 +28,15 @@ async function updateQuoteDynamoDBObject() {
         var quoteParams = {
             TableName: quoteTableName,
             Key: {
-                "id": quoteObjectID
+                "id": quoteObjectID,
             },
             UpdateExpression: "SET #quotesGenerated = #quotesGenerated + :inc",
-            ExpressionAttributeValue: {
-                ":inc": 1
+            ExpressionAttributeValues: {
+                ":inc": 1,
             },
             ExpressionAttributeNames: {
-                "quotesGenerated": "quotesGenerated",
+                "#quotesGenerated": "quotesGenerated",
             },
-            ReturnValues: "UPDATED_NEW"
         };
 
         const updateQuoteObject = await docClient.update(quoteParams).promise();

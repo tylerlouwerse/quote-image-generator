@@ -21,8 +21,9 @@ import QuoteGeneratorModal from '@/components/QuoteGenerator';
 // Assets
 import Clouds1 from '../assets/cloud-and-thunder.png';
 import { API } from 'aws-amplify';
-import { quotesQueryName } from '@/src/graphql/queries';
+import { generateAQuote, quotesQueryName } from '@/src/graphql/queries';
 import { GraphQLResult } from '@aws-amplify/api-graphql';
+import { run } from 'node:test';
 
 // inteface for our DynamoDB object
 interface UpdateQuoteInfoData {
@@ -31,6 +32,15 @@ interface UpdateQuoteInfoData {
   quotesGenerated: number;
   createdAt: string;
   updatedA: string;
+}
+
+// interface for our appsync <> lambda JSON response
+interface GenerateAQuoteData {
+  generateAQuote: {
+    statusCode: number;
+    header: { [key: string]: string },
+    body: string;
+  }
 }
 
 // type guard for our fetch function
@@ -84,6 +94,8 @@ export default function Home() {
   // functions for quote generator modal
   const handleCloseGenerator = () => {
     setOpenGenerator(false);
+    setProcessingQuote(false);
+    setQuoteReceived(null);
   }
 
   const handleOpenGenerator = async (e: React.SyntheticEvent) => {
@@ -93,6 +105,25 @@ export default function Home() {
 
     try {
       // run lambda function
+      const runFunction = "runFunction";
+      const runFunctionStringified = JSON.stringify(runFunction);
+      const response = await API.graphql<GenerateAQuoteData>({
+        query: generateAQuote,
+        authMode: 'AWS_IAM',
+        variables: {
+          input: runFunctionStringified
+        }
+      })
+      const responseStringified = JSON.stringify(response);
+      const responseReStringified = JSON.stringify(responseStringified);
+      const bodyIndex = responseReStringified.indexOf("body=") + 5;
+      const bodyAndBase64 = responseReStringified.substring(bodyIndex);
+      const bodyArray = bodyAndBase64.split(",");
+      const body = bodyArray[0];
+
+      setQuoteReceived(body);
+
+      updateQuoteInfo();
     } catch(error) {
       console.error(error);
     } finally {

@@ -52,6 +52,15 @@
   "function": {
     "quoteGeneratorLambda": {
       "build": true,
+      "dependsOn": [
+        {
+          "attributes": [
+            "GraphQLAPIIdOutput"
+          ],
+          "category": "api",
+          "resourceName": "quoteimagegenerator"
+        }
+      ],
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     }
